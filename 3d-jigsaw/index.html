@@ -3,6 +3,9 @@
   <head>
       <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
       <script src="../lib/BufferGeometryUtils.js"></script>
+      <script type="module">
+        import CSG from '../lib/three-csg.js';
+      </script>
       <script src="./3d-jigsaw.js"></script>
   </head>
 
@@ -18,8 +21,8 @@
            response-type="arraybuffer" crossorigin="anonymous">
         </a-asset-item>
       </a-assets>
-      <a-entity id="trex" position="0 1 -2"
-                cuboid-slice="layers:5;rows:5;columns:5">
+      <a-entity id="trex-parent" position="0 1 -2"
+                cuboid-slice="layers:3;rows:3;columns:3">
             <a-entity id="trex-model"
                       gltf-model="#trex"
                       scale = "0.01 0.01 0.01">
