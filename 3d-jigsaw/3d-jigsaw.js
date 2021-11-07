@@ -58,9 +58,10 @@ AFRAME.registerComponent('cuboid-slice', {
           this.cubes.push(cube);
 
           var piece = document.createElement('a-entity');
-          piece.object3D.position.copy(cube.object3D.position);
+
           // uncomment this out to create an exploded view.
-          piece.object3D.position.multiplyScalar(0.1);
+          // piece.object3D.position.copy(cube.object3D.position);
+          // piece.object3D.position.multiplyScalar(0.1);
           this.el.sceneEl.appendChild(piece);
 
 
@@ -110,6 +111,26 @@ AFRAME.registerComponent('cuboid-slice', {
       return transformedGeometry;
     }
 
+    function shiftPositionFromGeometryToMesh(geometry, mesh, center) {
+
+      mesh.position.add(center)
+      geometry.translate(-center.x, -center.y, -center.z);
+
+    }
+
+    function findBufferGeometryCenter(geometry) {
+
+      const center = new THREE.Vector3();
+
+      const positions = geometry.getAttribute("position");
+
+      center.x = positions.array.reduce((a, b, index) => (a + ((index % 3 === 0) ? b : 0)), 0) / positions.count;
+      center.y = positions.array.reduce((a, b, index) => (a + ((index % 3 === 1) ? b : 0)), 0) / positions.count;
+      center.z = positions.array.reduce((a, b, index) => (a + ((index % 3 === 2) ? b : 0)), 0) / positions.count;
+
+      return center;
+    }
+
     this.cubes.forEach((cube, index) => {
 
       if (true) {
@@ -119,7 +140,26 @@ AFRAME.registerComponent('cuboid-slice', {
         const material = new THREE.MeshNormalMaterial();
         this.pieces[index].setObject3D('mesh', new THREE.Mesh(intersectGeometry, material));
 
-      }
+        const center = findBufferGeometryCenter(intersectGeometry);
+
+        console.log(`Cube ${index} center cube vs. geometry average.`);
+        console.log(cube.object3D.position);
+        console.log(center);
+        shiftPositionFromGeometryToMesh(intersectGeometry,
+                                        this.pieces[index].object3D,
+                                        center)
+
+      }      
+    });
+
+    setTimeout(this.applyPhysics.bind(this), 3000);
+  },
+
+  applyPhysics: function() {
+
+    this.pieces.forEach((piece) => {
+      piece.setAttribute("ammo-body", "type:dynamic")
+      piece.setAttribute("ammo-shape", "type:hull")
     });
   },
 

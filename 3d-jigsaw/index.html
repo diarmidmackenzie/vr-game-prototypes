@@ -3,6 +3,8 @@
   <head>
       <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
       <script src="../lib/BufferGeometryUtils.js"></script>
+      <script src="https://mixedreality.mozilla.org/ammo.js/builds/ammo.wasm.js"></script>
+      <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.js"></script>
       <script type="module">
         import CSG from '../lib/three-csg.js';
       </script>
@@ -10,7 +12,8 @@
   </head>
 
   <body>
-    <a-scene debug>
+    <a-scene physics="driver: ammo" renderer="colorManagement:true">
+      <!--debug: true; debugDrawMode: 1;-->
       <a-assets>
         <a-asset-item id="trex"
            src="../assets/t-rex/scene.gltf"
@@ -28,7 +31,13 @@
                       scale = "0.01 0.01 0.01">
             </a-entity>
       </a-entity>
-      <a-plane position="0 1 -2" rotation="-90 0 0" width="2" height="2" color="#7BC8A4"></a-plane>
+      <a-box id="floor-plane"
+             width = "20" height = "2" depth = "20"
+             ammo-body="type: static" ammo-shape="type: box"
+             position = "0 0 0"
+             material= "color:brown">
+      </a-box>
+
       <a-sky color="#ECECEC"></a-sky>
     </a-scene>
   </body>
