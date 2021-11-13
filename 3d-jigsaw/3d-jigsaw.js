@@ -58,6 +58,7 @@ AFRAME.registerComponent('cuboid-slice', {
           this.cubes.push(cube);
 
           var piece = document.createElement('a-entity');
+          piece.setAttribute("jigsaw-piece", "");
 
           // uncomment this out to create an exploded view.
           // piece.object3D.position.copy(cube.object3D.position);
@@ -137,7 +138,8 @@ AFRAME.registerComponent('cuboid-slice', {
         const cubeGeometry = transformGeometry(cube.object3D.children[0].geometry, cube.object3D);
         const intersect = CSG.intersect([this.geometry, cubeGeometry]);
         const intersectGeometry = CSG.BufferGeometry(intersect)
-        const material = new THREE.MeshNormalMaterial();
+        const material = new THREE.MeshStandardMaterial();
+
         this.pieces[index].setObject3D('mesh', new THREE.Mesh(intersectGeometry, material));
 
         const center = findBufferGeometryCenter(intersectGeometry);
@@ -148,8 +150,9 @@ AFRAME.registerComponent('cuboid-slice', {
         shiftPositionFromGeometryToMesh(intersectGeometry,
                                         this.pieces[index].object3D,
                                         center)
+        this.pieces[index].setAttribute("material", "color:#dd8833; metallic:0.5");
 
-      }      
+      }
     });
 
     setTimeout(this.applyPhysics.bind(this), 3000);
@@ -206,6 +209,101 @@ AFRAME.registerComponent('cuboid-slice', {
     })
 
     return newGeometry;
+  }
+});
+
+AFRAME.registerComponent('jigsaw-piece', {
+
+  init: function() {
+    this.el.setAttribute("clickable");
+    this.el.addEventListener("raycaster-intersected", this.hoverStart.bind(this));
+    this.el.addEventListener("raycaster-intersected-cleared", this.hoverEnd.bind(this));
+  },
+
+  hoverStart: function() {
+
+    this.el.removeAttribute('animation__hover')
+    this.el.setAttribute('animation__hover',
+    {
+        property: 'material.color',
+        from: '#dd8833',
+        to: '#ffaa44',
+        dur: 200
+    });
+  },
+
+  hoverEnd: function() {
+
+    this.el.removeAttribute('animation__unhover')
+    this.el.setAttribute('animation__unhover',
+    {
+        property: 'material.color',
+        from: '#ffaa44',
+        to: '#dd8833',
+        dur: 200
+    });
+  }
+});
+
+AFRAME.registerComponent('grab-controls', {
+
+  init: function() {
+    this.el.addEventListener("triggerdown", this.triggerDown.bind(this));
+    this.el.addEventListener("triggerup", this.triggerUp.bind(this));
+
+    this.grabbedEl = null;
+
+    this.matrix = new THREE.Matrix4();
+  },
+
+  triggerDown: function(evt) {
+
+    const intersections = this.el.components.raycaster.intersectedEls;
+
+    if (intersections.length > 0) {
+
+      this.grabbedEl = intersections[0];
+
+      // switch object from dynamic to kinematic
+      // and make non-grabable by the other controller.
+      // (!! consider race condition - maybe need to do better here...)
+      this.grabbedEl.setAttribute("ammo-body", "type:kinematic");
+      this.grabbedEl.removeAttribute("clickable");
+
+      // reparent object to controller.
+      const object = this.grabbedEl.object3D;
+      matrix.copy(this.el.object3D.matrixWorld);
+      matrix.invert();
+      object.matrix.premultiply(matrix);
+      object.matrix.decompose(object.position, object.quaternion, object.scale);
+
+      this.el.object3D.add(object);
+    }
+  },
+
+  triggerUp: function(evt) {
+
+    if (this.grabbedEl) {
+
+      // reparent object to scene.
+      const object = this.grabbedEl.object3D;
+      this.el.sceneEl.object3D.add(object);
+      matrix.copy(this.el.object3D.matrixWorld);
+      object.matrix.premultiply(matrix);
+      object.matrix.decompose(object.position, object.quaternion, object.scale);
+
+      // switch object back to dynamic.
+      // needs to be a brief pause while object data changes are applied,
+      // or the object disappears.
+      setTimeout(this.restartPhysics.bind(this), 50);
+    }
+  },
+
+  restartPhysics: function() {
+    this.grabbedEl.setAttribute("ammo-body", "type:dynamic");
+    this.grabbedEl.setAttribute("clickable");
+
+    this.grabbedEl = null;
   }
 });
 

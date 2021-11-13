@@ -12,8 +12,28 @@
   </head>
 
   <body>
-    <a-scene physics="driver: ammo" renderer="colorManagement:true">
+    <a-scene physics="driver: ammo"
+             cursor="rayOrigin: mouse; fuse: false"
+             raycaster="objects: [clickable]"
+             renderer="colorManagement:true">
       <!--debug: true; debugDrawMode: 1;-->
+
+      <a-entity id="rig">
+
+        <a-entity id="camera" camera position="0 1.6 0" look-controls>
+        </a-entity>
+        <a-entity id="rhand"
+                  laser-controls="hand: right" raycaster="objects: [clickable]; lineColor: red; lineOpacity: 0.5"
+                  grab-controls
+                  hand-controls="hand: right">
+        </a-entity>
+        <a-entity id="lhand"
+                  laser-controls="hand: right" raycaster="objects: [clickable]; lineColor: red; lineOpacity: 0.5"
+                  grab-controls
+                  hand-controls="hand: left">
+        </a-entity>
+      </a-entity>
+
       <a-assets>
         <a-asset-item id="trex"
            src="../assets/t-rex/scene.gltf"
