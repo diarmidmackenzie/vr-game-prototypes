@@ -1,3 +1,5 @@
+const INDEX_MAP = [1, 0, 3, 2, 5, 4];
+
 AFRAME.registerComponent('cuboid-slice', {
   schema: {
     columns: {type: 'number', default: 5},
@@ -34,11 +36,13 @@ AFRAME.registerComponent('cuboid-slice', {
     this.depth = bboxDepth / this.data.rows;
 
     this.cubes = []
-    var cubeIndex = 0;
+    var cubeIndex = '';
     this.pieces = []
     for (var ii = 0; ii < this.data.layers; ii++) {
       for (var jj = 0; jj < this.data.rows; jj++) {
         for (var kk = 0; kk < this.data.columns; kk++) {
+
+          cubeIndex = `${ii}-${jj}-${kk}`
 
           var cube = document.createElement('a-box');
 
@@ -65,6 +69,25 @@ AFRAME.registerComponent('cuboid-slice', {
           // piece.object3D.position.multiplyScalar(0.1);
           this.el.sceneEl.appendChild(piece);
 
+          piece.adjacentPieceIds = []
+          piece.referencePoints = []
+          trackAdjacentPiece(cube, 1, 0, 0)
+          trackAdjacentPiece(cube, -1, 0, 0)
+          trackAdjacentPiece(cube, 0, 1, 0)
+          trackAdjacentPiece(cube, 0, -1, 0)
+          trackAdjacentPiece(cube, 0, 0, 1)
+          trackAdjacentPiece(cube, 0, 0, -1)
+
+          function trackAdjacentPiece(cube, iDelta, jDelta, kDelta) {
+
+            piece.adjacentPieceIds.push(`#cube${ii + iDelta}-${jj + jDelta}-${kk + kDelta}`)
+
+            const referencePoint = document.createElement('a-entity');
+            referencePoint.object3D.position.x = cube.object3D.position.x + iDelta * this.width * 0.5;
+            referencePoint.object3D.position.y = cube.object3D.position.y + jDelta * this.height * 0.5;
+            referencePoint.object3D.position.z = cube.object3D.position.z + kDelta * this.depth * 0.5;
+            piece.referencePoints.push(referencePoint)
+          }
 
           this.pieces.push(piece);
         }
@@ -117,6 +140,11 @@ AFRAME.registerComponent('cuboid-slice', {
       mesh.position.add(center)
       geometry.translate(-center.x, -center.y, -center.z);
 
+      // And also update child object positions...
+      mesh.children.forEach((child) => {
+        child.position.sub(center)
+      })
+
     }
 
     function findBufferGeometryCenter(geometry) {
@@ -151,7 +179,6 @@ AFRAME.registerComponent('cuboid-slice', {
                                         this.pieces[index].object3D,
                                         center)
         this.pieces[index].setAttribute("material", "color:#dd8833; metallic:0.5");
-
       }
     });
 
@@ -254,6 +281,11 @@ AFRAME.registerComponent('grab-controls', {
     this.grabbedEl = null;
 
     this.matrix = new THREE.Matrix4();
+
+    this.myWorldPosition = new THREE.Vector3();
+    this.adjacentWorldPosition = new THREE.Vector3();
+    this.compareVectors = new THREE.Vector3();
+    this.compareQuaternions = new THREE.Quaternion();
   },
 
   triggerDown: function(evt) {
@@ -304,6 +336,41 @@ AFRAME.registerComponent('grab-controls', {
     this.grabbedEl.setAttribute("clickable");
 
     this.grabbedEl = null;
+  },
+
+  tick: function() {
+
+    this.el.adjacentPieceIds.forEach((id, index) => {
+
+      const adjacentPiece = document.getElementById(id)
+
+      if (!adjacentPiece) return;
+
+      // get the other piece's index for this piece.
+      adjacentIndex = INDEX_MAP[index]
+
+      const adjacentReference = adjacentPiece.referencePoints[adjacentIndex];
+      myReference = this.el.referencePoints[index];
+
+      myReference.getWorldPosition(this.myWorldPosition);
+      adjacentReference.getWorldPosition(this.adjacentWorldPosition);
+
+      this.compareVectors.sub(this.myWorldPosition,
+                              this.adjacentWorldPosition);
+
+      if (this.compareVectors.lengthSq < 0.01) {
+        // The blocks are close together.  Now check rotation.
+
+        // can compare rotations directly (no need to translate into world space)
+        const angle = myReference.object3D.quaternion.angleTo(adjacentReference.object3D.quaternion);
+
+        // if < 0.1 radians, consider this a match...
+        if (angle < 0.1) {
+
+          console.log("Pieces matched")
+        }
+      }
+    })
   }
 });
 
