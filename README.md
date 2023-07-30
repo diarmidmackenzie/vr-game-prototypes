@@ -24,3 +24,11 @@ A 3D environment - I've not yet decided what to do with it...
 
 "Butron castle" (https://skfb.ly/6ZzxB) by FUD-UJEP is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
 
+
+
+Perf notes
+
+- By itself, environment is ~11 raf
+- Particles don't seem to make much difference
+- Env + castle without particles is ~39 raf.  With (500 snow particles, size 10, opacity 0.1) , raf becomes more variable, from 34 to 44.... Strange that it is sometime better...
+

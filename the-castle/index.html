@@ -6,9 +6,14 @@
     <meta name="description" content="The Castle">
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-environment-component@1.3.1/dist/aframe-environment-component.min.js"></script>
+    <!-- unpkg version of particle system hits shader compile errors -->
+    <!-- <script src="https://unpkg.com/aframe-particle-system-component@1.0.x/dist/aframe-particle-system-component.min.js"></script>-->
+    <script src="./lib/aframe-particle-system-component.old.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/kylebakerio/vr-super-stats@1.5.0/vr-super-stats.js"></script>
   </head>
   <body>
-    <a-scene stats>
+    <a-scene vr-super-stats="anchorel:#lhand; position:0 -.5 0; backgroundcolor:rgba(255, 255, 255, 0.8);"
+             stats>
       <a-assets>
         <a-asset-item id="castle" src="./assets/castle/scene.gltf"></a-asset-item>
       </a-assets>
@@ -24,6 +29,16 @@
       </a-entity>
 
       <a-entity environment="preset: forest; ground: hills; skyColor: #424; groundTexture: walkernoise; groundColor: #242815; groundColor2: #414930; groundYScale: 50; playArea: 1.2; dressing: none"></a-entity>
+      <a-entity position="-8 4 -2" particle-system="preset: snow;
+                                                  size: 10;
+                                                  opacity: 0,0.1,0.08,0.1,0.08,0.1,0.1,0;
+                                                  velocityValue: 0.75 0 0;
+                                                  velocitySpread: 0.4 0 0;
+                                                  positionSpread: 2 5 10;
+                                                  accelerationValue: 0 0 0;
+                                                  accelerationSpread: 0.1 0 0;
+                                                  maxAge: 20;
+                                                  particleCount: 200"></a-entity>
       <a-entity id="play-area">
         <a-plane material="color: yellow; opacity: 0.5" width="100" height="100" rotation="-90 0 0" visible="false"></a-plane>
         <a-entity gltf-model="#castle" scale="1 1 1" rotation="0 -90 0" position="5 -3.7 -18"></a-entity>
