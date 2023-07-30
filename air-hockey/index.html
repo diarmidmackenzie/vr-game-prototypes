@@ -18,12 +18,13 @@
     <script src="https://air-hockey-naf-server.glitch.me/easyrtc/easyrtc.js"></script>
     <script src="https://unpkg.com/networked-aframe@^0.11.0/dist/networked-aframe.min.js"></script>
     <script>
-      // see issue https://github.com/networked-aframe/networked-aframe/issues/267
+      // Temporary workaround for template declaration; see issue 167
       NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
+
       NAF.schemas.getComponents = (template) => {
-        if (!NAF.schemas.hasTemplate('#avatar-template')) {
+        if (!NAF.schemas.hasTemplate('#head-template')) {
           NAF.schemas.add({
-            template: '#avatar-template',
+            template: '#head-template',
             components: [
               'position',
               'rotation',
@@ -35,11 +36,13 @@
             ]
           });
         }
+
         const components = NAF.schemas.getComponentsOriginal(template);
         return components;
       };
     </script>
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.controls.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/physx@0.1.2/dist/physx.min.js"></script>
     <script src="/dist/air-hockey.js"></script>
   </head>
@@ -52,15 +55,19 @@
         <!-- Templates -->
 
         <!-- Avatar -->
-        <template id="avatar-template">
+        <template id="rig-template">
+          <a-entity></a-entity>
+        </template>
+
+        <template id="head-template">
           <a-entity class="avatar">
-            <a-sphere class="head" scale="0.45 0.5 0.4"></a-sphere>
+            <a-sphere class="head" scale="0.2 0.22 0.2" random-color></a-sphere>
             <a-entity class="face" position="0 0.05 0">
-              <a-sphere class="eye" color="#efefef" position="0.16 0.1 -0.35" scale="0.12 0.12 0.12">
-                <a-sphere class="pupil" color="#000" position="0 0 -1" scale="0.2 0.2 0.2"></a-sphere>
+              <a-sphere class="eye" color="white" position="0.06 0.05 -0.16" scale="0.04 0.04 0.04">
+                <a-sphere class="pupil" color="black" position="0 0 -1" scale="0.2 0.2 0.2"></a-sphere>
               </a-sphere>
-              <a-sphere class="eye" color="#efefef" position="-0.16 0.1 -0.35" scale="0.12 0.12 0.12">
-                <a-sphere class="pupil" color="#000" position="0 0 -1" scale="0.2 0.2 0.2"></a-sphere>
+              <a-sphere class="eye" color="white" position="-0.06 0.05 -0.16" scale="0.04 0.04 0.04">
+                <a-sphere class="pupil" color="black" position="0 0 -1" scale="0.2 0.2 0.2"></a-sphere>
               </a-sphere>
             </a-entity>
           </a-entity>
@@ -72,19 +79,50 @@
             <a-sphere radius="0.05" color="red"></a-sphere>
           </a-entity>
         </template>        
+      
+        <!-- Hand collider -->
+        <template id="hand-collider-template">
+          <a-entity>
+            <a-sphere radius="0.02" visible="false"
+                      physx-body="type: kinematic"></a-sphere>
+          </a-entity>
+        </template>
       </a-assets>
 
-      <a-entity id="cameraRig">
+      <a-entity id="rig" movement-controls spawn-in-circle="radius:3" networked="template:#rig-template;">
         <a-entity
           id="player"
-          networked="template:#avatar-template;attachTemplateToLocal:false;"
           camera
           position="0 1.6 0"
-          spawn-in-circle="radius:3"
-          wasd-controls
           look-controls
+          networked="template:#head-template;"
+          visible="false"
         >
-          <a-sphere class="head" visible="false" random-color></a-sphere>
+        </a-entity>
+        <!-- here we add the user's local hands! These two entities are all that is needed. -->
+        <a-entity
+          id="my-tracked-left-hand"
+          networked-hand-controls="hand:left;color:white;"
+          networked="template:#left-hand-default-template"
+        >
+          <a-sphere id="left-hand-collider" 
+                    radius="0.02"
+                    visible="false"
+                    physx-body="type: kinematic"
+                    networked="template:#hand-collider-template">
+          </a-sphere>
+        </a-entity>
+        <a-entity
+          id="my-tracked-right-hand"
+          networked-hand-controls="hand:right;color:white;"
+          networked="template:#right-hand-default-template"
+        >
+          <a-sphere id="right-hand-collider" 
+                    radius="0.02"
+                    visible="false"
+                    physx-body="type: kinematic"
+                    networked="template:#hand-collider-template">
+          </a-sphere>
         </a-entity>
       </a-entity>
 
