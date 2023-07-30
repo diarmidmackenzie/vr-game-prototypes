@@ -4,6 +4,15 @@
     <meta charset="utf-8" />
     <title>Basic Example — Networked-Aframe</title>
     <meta name="description" content="Basic Example — Networked-Aframe" />
+    <script>
+      const randomString = () => (Math.random() + 1).toString(36).substring(8).toUpperCase();
+      const queryString = window.location.search;
+      const urlParams = new URLSearchParams(queryString);
+      const ROOM_KEY = urlParams.get('room') 
+      if (!ROOM_KEY) {
+        location.href = window.location.href + '?room=' + randomString();
+      }
+    </script>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.5.0/socket.io.slim.js"></script>
     <script src="https://air-hockey-naf-server.glitch.me/easyrtc/easyrtc.js"></script>
@@ -31,18 +40,13 @@
       };
     </script>
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
-    <script src="https://unpkg.com/aframe-environment-component@1.3.2/dist/aframe-environment-component.min.js"></script>
-    <script src="/js/spawn-in-circle.component.js"></script>
+    <script src="/js/spawn-in-circle.js"></script>
+    <script src="/src/networking.js"></script>
+    <script src="/src/display-room-key.js"></script>
   </head>
   <body>
     <a-scene
-      networked-scene="
-      serverURL: air-hockey-naf-server.glitch.me;
-      room: basic;
-      debug: true;
-      adapter: wseasyrtc;
-    "
-    >
+      networking>
       <a-assets>
         <!-- Templates -->
 
@@ -78,7 +82,8 @@
         </a-entity>
       </a-entity>
 
-      <a-entity environment="preset:arches"></a-entity>
+      <a-plane position="0 1.6 -5" scale="2 2 2" display-room-key>
+      </a-plane>
       <a-entity light="type:ambient;intensity:0.5"></a-entity>
     </a-scene>
 
