@@ -52,7 +52,7 @@
         </a-entity>
       </a-entity>
 
-      <a-plane position="0 1 0" rotation="-90 0 0" width="1" height="2" color="#888"
+      <a-plane id="base" position="0 1 0" rotation="-90 0 0" width="1" height="2" color="#888"
                physx-body="type: static">
       </a-plane>
       <a-box position="-0.5 1.05 0" width="0.1" height="0.1" depth="2.1" color="#888"
@@ -68,10 +68,12 @@
              physx-body="type: static">
       </a-box>
 
-      <a-cylinder id="paddle1" position="0 1.5 0.75" radius="0.05" height="0.05" color="red"
+      <a-cylinder id="paddle1" position="0 1.015 0.75" radius="0.05" height="0.03" color="red"
             physx-body="type: dynamic">
+          <a-entity physx-joint="type: Prismatic; target:#base; collideWithTarget: false">
+          </a-entity>
       </a-cylinder>
-      <a-cylinder id="paddle2" position="0 1.5 -0.75" radius="0.05" height="0.05" color="blue"
+      <a-cylinder id="paddle2" position="0 1.015 -0.75" radius="0.05" height="0.03" color="blue"
             physx-body="type: dynamic">
       </a-cylinder>
     </a-scene>

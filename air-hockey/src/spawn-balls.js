@@ -10,8 +10,9 @@ AFRAME.registerComponent('spawn-balls', {
         return
       }
 
-      const html = `<a-cylinder id="puck" position="0 1.5 0" radius="0.05" height="0.01" color="white"
-                              physx-body="type: dynamic">
+      const html = `<a-cylinder id="puck" position="0 1.015 0" radius="0.05" height="0.01" color="white"
+                              physx-body="type: dynamic; highPrecision: true"
+                              physx-material="staticFriction: 0; dynamicFriction: 0; restitution: 1">
                     </a-cylinder>`
       scene.insertAdjacentHTML("beforeend", html)
 
