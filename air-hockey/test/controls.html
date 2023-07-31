@@ -70,7 +70,9 @@
 
       <a-cylinder id="paddle1" position="0 1.015 0.75" radius="0.05" height="0.03" color="red"
             physx-body="type: dynamic">
-          <a-entity physx-joint="type: Prismatic; target:#base; collideWithTarget: false">
+          <a-entity physx-joint="type: D6; target:#base; collideWithTarget: false"
+                    physx-joint-constraint__xz="constrainedAxes: x, z; linearLimit: -10 10"
+                    physx-joint-constraint__y="constrainedAxes: y; linearLimit: 0 0">
           </a-entity>
       </a-cylinder>
       <a-cylinder id="paddle2" position="0 1.015 -0.75" radius="0.05" height="0.03" color="blue"
