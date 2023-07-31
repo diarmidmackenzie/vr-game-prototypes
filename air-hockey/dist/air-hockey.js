@@ -11,30 +11,6 @@
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./src/a-puck.js":
-/*!***********************!*\
-  !*** ./src/a-puck.js ***!
-  \***********************/
-/***/ (() => {
-
-AFRAME.registerPrimitive('a-puck', {
-  defaultComponents: {
-    puck: {}
-  },
-})
-
-AFRAME.registerComponent('puck', {
-
-  init() {
-    this.el.setAttribute('geometry', 'primitive: sphere; radius: 0.05')
-    this.el.setAttribute('material', 'color: red')
-    this.el.setAttribute('physx-body', 'type: dynamic')
-    this.el.setAttribute('networked', 'template: #ball-template')
-  }
-})
-
-/***/ }),
-
 /***/ "./src/display-room-key.js":
 /*!*********************************!*\
   !*** ./src/display-room-key.js ***!
@@ -69,6 +45,126 @@ AFRAME.registerComponent('networking', {
 
 /***/ }),
 
+/***/ "./src/physx-grab.js":
+/*!***************************!*\
+  !*** ./src/physx-grab.js ***!
+  \***************************/
+/***/ (() => {
+
+(function () {
+
+  worldPosition = new THREE.Vector3()
+  targetWorldPosition = new THREE.Vector3()
+
+  AFRAME.registerComponent('physx-grab', {
+
+  schema: {
+      target: { type: 'selector' },
+
+      // how close to target hand must be to grab
+      grabProximity: { default: 0.2 },
+
+      // additional distance tolerated before release
+      holdTolerance: { default: 0.1 },
+    },
+
+    init() {
+
+      // If a state of "grabbed" is set on a physx-body entity, 
+      // the entity is automatically transformed into a kinematic entity.
+      // To avoid triggering this (we want to grab using constraints, and leave the
+      // body as dynamic), we use a non-clashing name for the state we set on the entity when
+      // grabbing it.
+      this.GRABBED_STATE = 'grabbed-dynamic';
+
+      this.grabbing = false
+      this.grabTarget = null
+      this.physxEl = this.el.querySelector('[physx-body]')
+
+      // Bind event handlers
+      this.onGripOpen = this.onGripOpen.bind(this);
+      this.onGripClose = this.onGripClose.bind(this);
+
+    },
+
+    play() {
+      var el = this.el;
+      el.addEventListener('gripdown', this.onGripClose);
+      el.addEventListener('gripup', this.onGripOpen);
+      el.addEventListener('triggerdown', this.onGripClose);
+      el.addEventListener('triggerup', this.onGripOpen);
+    },
+
+    pause() {
+      var el = this.el;
+      el.removeEventListener('gripdown', this.onGripClose);
+      el.removeEventListener('gripup', this.onGripOpen);
+      el.removeEventListener('triggerdown', this.onGripClose);
+      el.removeEventListener('triggerup', this.onGripOpen);
+    },
+
+    onGripClose: function (evt) {
+      this.grabbing = true;
+
+      // joint will be created on next tick (if within range)
+    },
+
+    onGripOpen: function (evt) {
+      
+      this.grabbing = false;
+      this.removeJoint()
+    },
+
+    addJoint(el, target) {
+
+      this.removeJoint()
+
+      this.joint = document.createElement('a-entity') 
+      this.joint.setAttribute("physx-joint", `type: Fixed; target: #${target.id}`)
+
+      el.appendChild(this.joint)
+    },
+
+    removeJoint() {
+
+      if (!this.joint) return
+      this.joint.parentElement.removeChild(this.joint)
+      this.joint = null
+    },
+
+    tick() {
+
+      const data = this.data
+      const target = data.target
+      if (!target) return
+
+      this.el.object3D.getWorldPosition(worldPosition)
+      target.object3D.getWorldPosition(targetWorldPosition)
+
+      const dist = targetWorldPosition.sub(worldPosition).length()
+
+      if (dist < data.grabProximity) {
+        this.grabTarget = target
+
+        if (this.grabbing && !this.joint) {
+          this.addJoint(this.physxEl, target)
+        }
+      }
+
+      else if (dist > (data.grabProximity + data.holdTolerance)) {
+
+        if (this.grabTarget) {
+          this.removeJoint()
+          this.grabTarget = null
+        }
+      }
+    }
+  })
+})()
+
+
+/***/ }),
+
 /***/ "./src/spawn-balls.js":
 /*!****************************!*\
   !*** ./src/spawn-balls.js ***!
@@ -78,17 +174,21 @@ AFRAME.registerComponent('networking', {
 AFRAME.registerComponent('spawn-balls', {
   init() {
 
-    const scene = this.el.sceneEl
+    // wait 5 seconds to check for replicated pucks before spawning them in.
+    setTimeout(() => {  
+      const scene = this.el.sceneEl
 
-    // no need for balls if they already exist
-    if (scene.querySelector('a-puck')) {
-      return
-    }
+      // no need for balls if they already exist
+      if (document.querySelector('[height="0.01"]')) {
+        return
+      }
 
-    const html = `<a-puck position="0 1.5 0"></a-puck>
-                  <a-puck position="0.01 1.8 -0.01"></a-puck>
-                  <a-puck position="0 2.2 0.01"></a-puck>`
-    scene.insertAdjacentHTML("beforeend", html)
+      const html = `<a-cylinder id="puck" position="0 1.5 0" radius="0.05" height="0.01" color="white"
+                              physx-body="type: dynamic">
+                    </a-cylinder>`
+      scene.insertAdjacentHTML("beforeend", html)
+
+    }, 5000)
   }
 })
 
@@ -173,7 +273,7 @@ __webpack_require__(/*! ../../../../../../../../src/display-room-key.js */ "./sr
 __webpack_require__(/*! ../../../../../../../../src/networking.js */ "./src/networking.js")
 __webpack_require__(/*! ../../../../../../../../src/spawn-in-circle.js */ "./src/spawn-in-circle.js")
 __webpack_require__(/*! ../../../../../../../../src/spawn-balls.js */ "./src/spawn-balls.js")
-__webpack_require__(/*! ../../../../../../../../src/a-puck.js */ "./src/a-puck.js")
+__webpack_require__(/*! ../../../../../../../../src/physx-grab.js */ "./src/physx-grab.js")
 })();
 
 /******/ 	return __webpack_exports__;

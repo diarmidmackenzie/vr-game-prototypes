@@ -6,13 +6,13 @@ AFRAME.registerComponent('spawn-balls', {
       const scene = this.el.sceneEl
 
       // no need for balls if they already exist
-      if (document.querySelector('[radius="0.06"]')) {
+      if (document.querySelector('[height="0.01"]')) {
         return
       }
 
-      const html = `<a-sphere id="puck" position="0 1.5 0" radius="0.06" color="white"
+      const html = `<a-cylinder id="puck" position="0 1.5 0" radius="0.05" height="0.01" color="white"
                               physx-body="type: dynamic">
-                    </a-sphere>`
+                    </a-cylinder>`
       scene.insertAdjacentHTML("beforeend", html)
 
     }, 5000)

@@ -107,7 +107,7 @@
           physx-grab="target:#paddle1"
         >
           <a-sphere id="left-hand-collider" 
-                    radius="0.02"
+                    radius="0.002"
                     visible="false"
                     physx-body="type: kinematic"
                     networked="template:#hand-collider-template">
@@ -120,7 +120,7 @@
           physx-grab="target:#paddle1"
         >
           <a-sphere id="right-hand-collider" 
-                    radius="0.02"
+                    radius="0.002"
                     visible="false"
                     physx-body="type: kinematic"
                     networked="template:#hand-collider-template">
@@ -146,7 +146,14 @@
       <a-box position="0 1.05 -1" width="1.1" height="0.1" depth="0.1" color="#888"
              physx-body="type: static">
       </a-box>
-      
+
+      <a-cylinder id="paddle1" position="0 1.5 0.75" radius="0.05" height="0.03" color="red"
+            physx-body="type: dynamic">
+      </a-cylinder>
+      <a-cylinder id="paddle2" position="0 1.5 -0.75" radius="0.05" height="0.03" color="blue"
+            physx-body="type: dynamic">
+      </a-cylinder>
+
     </a-scene>
 
     <script>

@@ -93,7 +93,7 @@
       if (dist < data.grabProximity) {
         this.grabTarget = target
 
-        if (this.grabbing) {
+        if (this.grabbing && !this.joint) {
           this.addJoint(this.physxEl, target)
         }
       }
